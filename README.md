@@ -4,7 +4,22 @@
 
 适用 Debian 12/13、Ubuntu 24.04。顺序：**安装依赖 → SuRelay 配节点 → BBR / TCP 调优 → NQ / TQ 测试**。
 
-## 0  安装基础工具
+## 0  SSH 连接与基础工具
+
+### 重置 SSH 主机密钥记录
+
+重装 VPS 后若提示 `REMOTE HOST IDENTIFICATION HAS CHANGED!`，先在服务商控制台核对新指纹（ED25519 可用 `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` 查看）。
+
+在**本机终端**选一条执行，将地址和端口换成实际值。
+
+```sh
+ssh-keygen -R 203.0.113.10           # 默认端口 22
+ssh-keygen -R '[203.0.113.10]:2222'  # 非默认端口
+```
+
+重连时核对指纹，一致后再接受新密钥。
+
+### 安装基础工具
 
 使用 root 登录；普通用户可执行 `su -s /bin/sh - root` 切换（需 root 密码），不依赖 `sudo` 或已安装的 Bash。
 
@@ -20,23 +35,6 @@ exec bash
 ```
 
 其中 `procps` 提供 `sysctl`，`iproute2` 提供 `ip/tc`，`kmod` 提供 `modprobe/modinfo`。其他依赖按各脚本提示安装。
-
-### 重置 SSH 主机密钥记录
-
-重装 VPS 后若提示 `REMOTE HOST IDENTIFICATION HAS CHANGED!`，先在服务商的 VPS 控制台查看新主机密钥的指纹。下面以 ED25519 为例，按 SSH 提示的密钥类型选择对应的主机公钥文件。
-
-```sh
-ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
-```
-
-确认控制台的指纹与警告中显示的一致后，在**发起 SSH 连接的本机终端**执行对应的一条命令，清除 `~/.ssh/known_hosts` 中该 VPS 的旧记录。将示例 IP 替换为连接时使用的 IP 或域名，并按需修改端口。
-
-```sh
-ssh-keygen -R 203.0.113.10           # 默认端口 22
-ssh-keygen -R '[203.0.113.10]:2222'  # 非默认端口
-```
-
-重新连接 VPS，按提示的密钥类型核对控制台指纹，确认一致后再接受新密钥。
 
 ## 1  SuRelay 配置节点
 
