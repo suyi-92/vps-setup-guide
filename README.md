@@ -4,7 +4,7 @@
 
 适用 Debian 12/13、Ubuntu 24.04。顺序：**安装依赖 → SuRelay 配节点 → BBR / TCP 调优 → NQ / TQ 测试**。
 
-## 0：安装基础工具
+## 0  安装基础工具
 
 使用 root 登录；普通用户可执行 `su -s /bin/sh - root` 切换（需 root 密码），不依赖 `sudo` 或已安装的 Bash。
 
@@ -21,7 +21,7 @@ exec bash
 
 其中 `procps` 提供 `sysctl`，`iproute2` 提供 `ip/tc`，`kmod` 提供 `modprobe/modinfo`。其他依赖按各脚本提示安装。
 
-## 1：SuRelay 配置节点
+## 1  SuRelay 配置节点
 
 ```bash
 bash <(wget -qO- https://raw.githubusercontent.com/suyi-92/SuRelay/main/install.sh)
@@ -38,7 +38,7 @@ sr status   # 查看状态
 
 [SuRelay 项目说明](https://github.com/suyi-92/SuRelay)
 
-## 2：BBR 与 TCP 调优
+## 2  BBR 与 TCP 调优
 
 ### 2.1 BBRv3（可选，先于 tcpfit）
 
@@ -74,7 +74,7 @@ tcpfit rollback     # 回滚 tcpfit 参数，不卸载 BBRv3 内核
 
 [tcpfit 介绍帖](https://www.nodeseek.com/post-865242-1) · [项目说明](https://github.com/Kylin010/tcpfit)
 
-## 3：NQ / TQ 测试
+## 3  NQ / TQ 测试
 
 ### NQ
 
