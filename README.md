@@ -17,80 +17,9 @@ ssh-keygen -R 203.0.113.10           # 默认端口 22
 ssh-keygen -R '[203.0.113.10]:2222'  # 非默认端口
 ```
 
-**重置指定主机的所有端口**
-
-在**本机终端**执行下方命令（需 Python 3.7 或更新版本）。将 `203.0.113.10` 换成连接时使用的 IP 或主机名。若同时用 IP 和域名连接过，分别执行一次。
-
-命令会先备份 `known_hosts`，再清理该地址在默认端口和各自定义端口的普通主机密钥记录，包含哈希记录。若配置了 `UserKnownHostsFile`，将第二个参数换成对应路径。
-
-```sh
-python3 - '203.0.113.10' "$HOME/.ssh/known_hosts" <<'PY'
-import base64
-import hmac
-import re
-import sys
-import tempfile
-from io import BytesIO
-from pathlib import Path
-from shutil import copymode
-
-host = sys.argv[1].lower().encode()
-path = Path(sys.argv[2]).expanduser().resolve()
-addresses = {host} | {b"[%s]:%d" % (host, port) for port in range(1, 65536)}
-
-
-def matches(address):
-    if not address.startswith(b"|1|"):
-        return address.lower() in addresses
-    try:
-        _, _, encoded_salt, encoded_hash = address.split(b"|")
-        salt = base64.b64decode(encoded_salt, validate=True)
-        digest = base64.b64decode(encoded_hash, validate=True)
-    except ValueError:
-        return False
-    return len(salt) == len(digest) == 20 and any(
-        hmac.digest(salt, candidate, "sha1") == digest for candidate in addresses
-    )
-
-
-def remove_host(line):
-    field = re.match(rb"[ \t]*([^ \t\r\n]+)[ \t]", line)
-    if not field or field[1].startswith((b"#", b"@")):
-        return line
-    kept = b",".join(name for name in field[1].split(b",") if not matches(name))
-    if not kept:
-        return b""
-    return line[:field.start(1)] + kept + line[field.end(1):]
-
-
-try:
-    original = path.read_bytes()
-except FileNotFoundError:
-    print(f"没有找到 {path}")
-    sys.exit(0)
-
-updated = b"".join(remove_host(line) for line in BytesIO(original))
-if updated == original:
-    print(f"没有找到 {sys.argv[1]} 的记录")
-    sys.exit(0)
-
-with tempfile.TemporaryDirectory(dir=path.parent) as directory:
-    replacement = Path(directory) / path.name
-    replacement.write_bytes(updated)
-    copymode(path, replacement)
-    with tempfile.NamedTemporaryFile(
-        dir=path.parent, prefix=f"{path.name}.bak-", delete=False
-    ) as backup:
-        backup.write(original)
-    if path.read_bytes() != original:
-        sys.exit("记录文件已变化，请重新执行")
-    replacement.replace(path)
-
-print(f"已清理 {sys.argv[1]} 的记录，备份位于 {backup.name}")
-PY
-```
-
 重连时核对指纹，一致后再接受新密钥。
+
+需要一次清理同一主机的所有端口时，见[文末的 PowerShell 脚本](#重置指定主机的所有端口)。
 
 ### 安装基础工具
 
@@ -195,3 +124,11 @@ bash <(curl -fsSL https://raw.githubusercontent.com/ibsgss/TcpQuality/main/runTc
 [TQ 介绍帖](https://www.nodeseek.com/post-809052-1) · [项目说明](https://github.com/ibsgss/TcpQuality)
 
 > 按 2026-11-06 的项目文档与源码整理；菜单、参数以当前脚本为准。
+
+## 重置指定主机的所有端口
+
+打开[PowerShell 脚本](scripts/Reset-SshKnownHosts.ps1)，复制全部内容，粘贴到 Windows 上的 PowerShell 并按回车。
+
+在弹窗中输入要重置的 IP 地址或主机名，点击「确定」。脚本会备份 `~/.ssh/known_hosts`，并清理该地址在所有端口的记录，包含哈希记录。
+
+重连时核对指纹，一致后再接受新密钥。
