@@ -129,6 +129,6 @@ bash <(curl -fsSL https://raw.githubusercontent.com/ibsgss/TcpQuality/main/runTc
 
 打开[PowerShell 脚本](scripts/Reset-SshKnownHosts.ps1)，复制全部内容，粘贴到 Windows 上的 PowerShell 并按回车。
 
-在弹窗中输入要重置的 IP 地址或主机名，点击「确定」。脚本会备份 `~/.ssh/known_hosts`，并清理该地址在所有端口的记录，包含哈希记录。
+按 PowerShell 提示输入要重置的 IP 地址或主机名，再按回车。留空并按回车可取消。脚本会备份 `~/.ssh/known_hosts`，并清理该地址在所有端口的记录，包含哈希记录。
 
 重连时核对指纹，一致后再接受新密钥。

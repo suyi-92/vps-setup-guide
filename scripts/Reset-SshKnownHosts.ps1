@@ -3,54 +3,11 @@
     # 使用自定义 UserKnownHostsFile 时，将此处换成实际路径。
     $knownHosts = Join-Path $HOME '.ssh\known_hosts'
 
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
-
-    $dialog = [System.Windows.Forms.Form]::new()
-    $dialog.Text = '重置 SSH 主机密钥记录'
-    $dialog.StartPosition = 'CenterScreen'
-    $dialog.FormBorderStyle = 'FixedDialog'
-    $dialog.MaximizeBox = $false
-    $dialog.MinimizeBox = $false
-    $dialog.TopMost = $true
-    $dialog.AutoScaleMode = 'Font'
-    $dialog.ClientSize = [System.Drawing.Size]::new(370, 116)
-
-    $label = [System.Windows.Forms.Label]::new()
-    $label.Text = '请输入要重置所有 SSH 端口记录的 IP 地址或主机名'
-    $label.SetBounds(12, 12, 346, 23)
-
-    $addressBox = [System.Windows.Forms.TextBox]::new()
-    $addressBox.MaxLength = 255
-    $addressBox.SetBounds(12, 38, 346, 24)
-
-    $ok = [System.Windows.Forms.Button]::new()
-    $ok.Text = '确定'
-    $ok.DialogResult = 'OK'
-    $ok.SetBounds(196, 76, 76, 28)
-
-    $cancel = [System.Windows.Forms.Button]::new()
-    $cancel.Text = '取消'
-    $cancel.DialogResult = 'Cancel'
-    $cancel.SetBounds(282, 76, 76, 28)
-
-    $dialog.Controls.AddRange([System.Windows.Forms.Control[]]@($label, $addressBox, $ok, $cancel))
-    $dialog.AcceptButton = $ok
-    $dialog.CancelButton = $cancel
-    $dialog.ActiveControl = $addressBox
-
-    try {
-        if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
-            return
-        }
-        $address = $addressBox.Text.Trim().ToLowerInvariant()
-    } finally {
-        $dialog.Dispose()
-    }
-
-    if ($address.Length -eq 0) {
+    $address = Read-Host '输入要重置的 IP 地址或主机名（留空取消）'
+    if ([string]::IsNullOrWhiteSpace($address)) {
         return
     }
+    $address = $address.Trim().ToLowerInvariant()
     $parsedIp = $null
     if ($address -cnotmatch '\A[a-z0-9_][a-z0-9._-]*\z' -and
         ($address.Contains('[') -or -not [Net.IPAddress]::TryParse($address, [ref]$parsedIp))) {
